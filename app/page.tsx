@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ProductPicker } from '@/components/product-picker';
-import { getActiveShoppingList, getCatalogData } from '@/lib/catalog';
+import { getActiveShoppingList, getCatalogData, groupProductsByCategory } from '@/lib/catalog';
 import { isAuthenticated } from '@/lib/auth';
 
 export default async function HomePage({
@@ -19,6 +19,7 @@ export default async function HomePage({
     searchParams ?? Promise.resolve({})
   ]);
   const params: { saved?: string; error?: string } = paramsRaw;
+  const groups = groupProductsByCategory(products);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -67,15 +68,14 @@ export default async function HomePage({
             <h2 className="text-xl font-semibold text-slate-950">{activeList.name}</h2>
           </div>
           <p className="text-sm text-slate-500">
-            {activeList.selectedProductIds.length} produit
-            {activeList.selectedProductIds.length > 1 ? 's' : ''} déjà choisi
-            {activeList.selectedProductIds.length > 1 ? 's' : ''}
+            {activeList.selectedProductIds.length}{' '}
+            {activeList.selectedProductIds.length > 1 ? 'produits déjà choisis' : 'produit déjà choisi'}
           </p>
         </div>
       </div>
 
       <ProductPicker
-        products={products}
+        groups={groups}
         initialSelectedIds={activeList.selectedProductIds}
         initialListName={activeList.name}
       />

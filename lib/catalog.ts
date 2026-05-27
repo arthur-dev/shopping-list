@@ -9,6 +9,8 @@ export type ProductCard = {
   weight_grams: number | null;
   price: number | null;
   price_per_kg: number | null;
+  category_level_1: string;
+  category_level_2: string | null;
 };
 
 export type ShoppingListState = {
@@ -17,64 +19,66 @@ export type ShoppingListState = {
   selectedProductIds: number[];
 };
 
-type ProductRow = {
-  id: number;
-  name: string;
-  brand: string;
-  product_url: string;
-  photo_url: string | null;
-  weight_grams: number | null;
-};
-
-type PriceRow = {
-  product_id: number;
-  price: number;
-  price_per_kg: number | null;
-  valid_from: string;
-};
-
 export async function getCatalogData() {
   const supabase = createSupabaseAdminClient();
 
-  const [productsResult, pricesResult] = await Promise.all([
-    supabase
-      .from('products')
-      .select('id, name, brand, product_url, photo_url, weight_grams')
-      .order('name', { ascending: true }),
-    supabase
-      .from('product_prices')
-      .select('product_id, price, price_per_kg, valid_from')
-      .order('valid_from', { ascending: false })
-  ]);
+  const { data, error } = await supabase
+    .from('product_catalog')
+    .select(
+      'id, name, brand, product_url, photo_url, weight_grams, price, price_per_kg, category_level_1, category_level_2'
+    )
+    .order('category_level_1', { ascending: true })
+    .order('category_level_2', { ascending: true })
+    .order('name', { ascending: true });
 
-  if (productsResult.error) {
-    throw productsResult.error;
+  if (error) {
+    throw error;
   }
 
-  if (pricesResult.error) {
-    throw pricesResult.error;
-  }
-
-  const latestPrices = new Map<number, PriceRow>();
-  for (const row of pricesResult.data ?? []) {
-    if (!latestPrices.has(row.product_id)) {
-      latestPrices.set(row.product_id, row);
-    }
-  }
-
-  const products = (productsResult.data ?? []).map((product: ProductRow) => {
-    const price = latestPrices.get(product.id);
-    const photoUrl = product.photo_url?.trim() ? product.photo_url : null;
-
-    return {
-      ...product,
-      photo_url: photoUrl,
-      price: price ? Number(price.price) : null,
-      price_per_kg: price?.price_per_kg != null ? Number(price.price_per_kg) : null
-    } satisfies ProductCard;
-  });
+  const products = (data ?? []).map((product) => ({
+    ...product,
+    photo_url: product.photo_url?.trim() ? product.photo_url : null,
+    price: product.price != null ? Number(product.price) : null,
+    price_per_kg: product.price_per_kg != null ? Number(product.price_per_kg) : null
+  })) satisfies ProductCard[];
 
   return { products };
+}
+
+export type CatalogGroup = {
+  categoryLevel1: string;
+  categoryLevel2Groups: {
+    categoryLevel2: string;
+    products: ProductCard[];
+  }[];
+};
+
+export function groupProductsByCategory(products: ProductCard[]): CatalogGroup[] {
+  const rootMap = new Map<string, Map<string, ProductCard[]>>();
+
+  for (const product of products) {
+    const level1 = product.category_level_1?.trim() || 'Sans catégorie';
+    const level2 = product.category_level_2?.trim() || 'Autres';
+
+    if (!rootMap.has(level1)) {
+      rootMap.set(level1, new Map());
+    }
+
+    const level2Map = rootMap.get(level1)!;
+    if (!level2Map.has(level2)) {
+      level2Map.set(level2, []);
+    }
+
+    level2Map.get(level2)!.push(product);
+  }
+
+  return Array.from(rootMap.entries()).map(([categoryLevel1, level2Map]) => ({
+    categoryLevel1,
+    categoryLevel2Groups: Array.from(level2Map.entries()).map(([categoryLevel2, groupedProducts]) => ({
+      categoryLevel2,
+      products: groupedProducts
+    }))
+  }));
 }
 
 export async function getActiveShoppingList() {

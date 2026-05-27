@@ -71,3 +71,59 @@ from course.shopping_lists;
 create or replace view public.shopping_list_items as
 select shopping_list_id, product_id, position, created_at
 from course.shopping_list_items;
+
+create or replace view public.product_catalog as
+with recursive category_ancestry as (
+  select
+    pc.product_id,
+    c.id as category_id,
+    c.name,
+    c.parent_id,
+    1 as depth
+  from course.product_categories pc
+  join course.categories c
+    on c.id = pc.category_id
+
+  union all
+
+  select
+    ca.product_id,
+    parent.id as category_id,
+    parent.name,
+    parent.parent_id,
+    ca.depth + 1
+  from category_ancestry ca
+  join course.categories parent
+    on parent.id = ca.parent_id
+),
+category_paths as (
+  select
+    product_id,
+    array_agg(name order by depth desc) as path
+  from category_ancestry
+  group by product_id
+),
+latest_prices as (
+  select distinct on (product_id)
+    product_id,
+    price,
+    price_per_kg
+  from course.product_prices
+  order by product_id, valid_from desc, id desc
+)
+select
+  p.id,
+  p.name,
+  p.brand,
+  p.product_url,
+  nullif(p.photo_url, '') as photo_url,
+  p.weight_grams,
+  lp.price,
+  lp.price_per_kg,
+  coalesce(cp.path[1], 'Sans catégorie') as category_level_1,
+  cp.path[2] as category_level_2
+from course.products p
+left join latest_prices lp
+  on lp.product_id = p.id
+left join category_paths cp
+  on cp.product_id = p.id;
