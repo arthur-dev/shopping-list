@@ -15,6 +15,7 @@ create index if not exists shopping_lists_created_at_idx
 create table if not exists course.shopping_list_items (
   shopping_list_id bigint not null references course.shopping_lists(id) on delete cascade,
   product_id bigint not null references course.products(id) on delete restrict,
+  quantity integer not null default 1,
   position integer not null default 0,
   created_at timestamptz not null default now(),
   primary key (shopping_list_id, product_id)
@@ -25,7 +26,8 @@ create index if not exists shopping_list_items_list_position_idx
 
 create or replace function public.save_shopping_list(
   p_name text,
-  p_product_ids bigint[]
+  p_product_ids bigint[],
+  p_quantities integer[]
 )
 returns bigint
 language plpgsql
@@ -45,12 +47,16 @@ begin
   )
   returning id into v_list_id;
 
-  insert into course.shopping_list_items (shopping_list_id, product_id, position)
+  insert into course.shopping_list_items (shopping_list_id, product_id, quantity, position)
   select
     v_list_id,
     item.product_id,
+    greatest(coalesce(q.quantity, 1), 1),
     item.ord::integer
-  from unnest(p_product_ids) with ordinality as item(product_id, ord);
+  from unnest(p_product_ids) with ordinality as item(product_id, ord)
+  left join lateral (
+    select p_quantities[item.ord] as quantity
+  ) q on true;
 
   return v_list_id;
 end;
@@ -69,7 +75,7 @@ select id, name, archived_at, created_at, updated_at
 from course.shopping_lists;
 
 create or replace view public.shopping_list_items as
-select shopping_list_id, product_id, position, created_at
+select shopping_list_id, product_id, quantity, position, created_at
 from course.shopping_list_items;
 
 create or replace view public.product_catalog as

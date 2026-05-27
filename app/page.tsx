@@ -68,15 +68,15 @@ export default async function HomePage({
             <h2 className="text-xl font-semibold text-slate-950">{activeList.name}</h2>
           </div>
           <p className="text-sm text-slate-500">
-            {activeList.selectedProductIds.length}{' '}
-            {activeList.selectedProductIds.length > 1 ? 'produits déjà choisis' : 'produit déjà choisi'}
+            {activeList.selectedItems.length}{' '}
+            {activeList.selectedItems.length > 1 ? 'produits déjà choisis' : 'produit déjà choisi'}
           </p>
         </div>
       </div>
 
       <ProductPicker
         groups={groups}
-        initialSelectedIds={activeList.selectedProductIds}
+        initialSelectedItems={activeList.selectedItems}
         initialListName={activeList.name}
       />
 

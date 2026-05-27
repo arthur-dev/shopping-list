@@ -19,6 +19,10 @@ export async function POST(request: Request) {
     .getAll('productIds')
     .map((value) => Number(value))
     .filter((value) => Number.isInteger(value) && value > 0);
+  const quantities = formData
+    .getAll('productQuantities')
+    .map((value) => Number(value))
+    .map((value) => (Number.isInteger(value) && value > 0 ? value : 1));
 
   if (productIds.length === 0) {
     return NextResponse.redirect(new URL('/?error=empty', request.url), 303);
@@ -28,7 +32,8 @@ export async function POST(request: Request) {
 
   const { error } = await supabase.rpc('save_shopping_list', {
     p_name: name,
-    p_product_ids: productIds
+    p_product_ids: productIds,
+    p_quantities: quantities.length === productIds.length ? quantities : productIds.map(() => 1)
   });
 
   if (error) {

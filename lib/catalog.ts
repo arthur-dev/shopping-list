@@ -16,7 +16,10 @@ export type ProductCard = {
 export type ShoppingListState = {
   id: number | null;
   name: string;
-  selectedProductIds: number[];
+  selectedItems: {
+    productId: number;
+    quantity: number;
+  }[];
 };
 
 export async function getCatalogData() {
@@ -100,13 +103,13 @@ export async function getActiveShoppingList() {
     return {
       id: null,
       name: 'Ma future course',
-      selectedProductIds: []
+      selectedItems: []
     } satisfies ShoppingListState;
   }
 
   const { data: items, error: itemsError } = await supabase
     .from('shopping_list_items')
-    .select('product_id')
+    .select('product_id, quantity')
     .eq('shopping_list_id', activeList.id)
     .order('position', { ascending: true });
 
@@ -117,6 +120,9 @@ export async function getActiveShoppingList() {
   return {
     id: activeList.id,
     name: activeList.name,
-    selectedProductIds: (items ?? []).map((item) => item.product_id)
+    selectedItems: (items ?? []).map((item) => ({
+      productId: item.product_id,
+      quantity: item.quantity
+    }))
   } satisfies ShoppingListState;
 }
