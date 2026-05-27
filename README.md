@@ -36,7 +36,8 @@ Ce repo contient une migration SQL pour :
 ## Comportement de l'interface
 
 - chaque produit affiche son nom, son prix, sa photo et une quantité éditable une fois sélectionné
-- en mode développement, un clic droit sur une carte produit ouvre la fiche Intermarché dans un nouvel onglet
+- chaque produit sélectionné affiche des boutons `-` et `+` pour régler la quantité
+- un bouton `Voir produit` ouvre la fiche Intermarché dans un nouvel onglet
 - les listes enregistrées conservent les `product_id` et les quantités pour pouvoir être rejouées plus tard dans le panier
 
 ## Déploiement Vercel

@@ -81,10 +81,10 @@ export function ProductPicker({
     );
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const changeQuantity = (productId: number, delta: number) => {
     setQuantityById((current) => ({
       ...current,
-      [productId]: Math.max(1, Math.floor(quantity) || 1)
+      [productId]: Math.max(1, (current[productId] ?? 1) + delta)
     }));
   };
 
@@ -193,19 +193,11 @@ export function ProductPicker({
                           <label
                             key={product.id}
                             className={[
-                                'group cursor-pointer rounded-[28px] border p-4 transition',
+                              'group cursor-pointer rounded-[28px] border p-4 transition',
                               checked
                                 ? 'border-slate-950 bg-slate-950 text-white shadow-soft'
                                 : 'border-slate-200/80 bg-white/85 text-slate-950 hover:border-slate-300'
                             ].join(' ')}
-                            onContextMenu={(event) => {
-                              if (process.env.NODE_ENV !== 'development') {
-                                return;
-                              }
-
-                              event.preventDefault();
-                              window.open(product.product_url, '_blank', 'noopener,noreferrer');
-                            }}
                           >
                             <input
                               type="checkbox"
@@ -264,31 +256,73 @@ export function ProductPicker({
 
                                 {checked ? (
                                   <div className="pt-3">
-                                    <label
-                                      className={[
-                                        'flex items-center gap-3 text-xs font-medium uppercase tracking-[0.2em]',
-                                        checked ? 'text-white/70' : 'text-slate-500'
-                                      ].join(' ')}
-                                    >
-                                      Quantité
-                                      <input
-                                        type="number"
-                                        name="productQuantities"
-                                        min={1}
-                                        step={1}
-                                        value={quantity}
-                                        onChange={(event) =>
-                                          updateQuantity(product.id, Number(event.target.value))
-                                        }
-                                        onClick={(event) => event.stopPropagation()}
+                                    <input
+                                      type="hidden"
+                                      name="productQuantities"
+                                      value={quantity}
+                                    />
+
+                                    <div className="flex items-center justify-between gap-3">
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className={[
+                                            'text-xs font-medium uppercase tracking-[0.2em]',
+                                            checked ? 'text-white/70' : 'text-slate-500'
+                                          ].join(' ')}
+                                        >
+                                          Quantité
+                                        </span>
+
+                                        <div className="flex items-center rounded-2xl border border-current/10 bg-white/5">
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.preventDefault();
+                                              event.stopPropagation();
+                                              changeQuantity(product.id, -1);
+                                            }}
+                                            className="h-9 w-9 rounded-l-2xl text-sm font-semibold transition hover:bg-white/10"
+                                            aria-label={`Diminuer la quantité de ${product.name}`}
+                                          >
+                                            -
+                                          </button>
+
+                                          <div className="min-w-10 px-3 text-center text-sm font-medium">
+                                            {quantity}
+                                          </div>
+
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.preventDefault();
+                                              event.stopPropagation();
+                                              changeQuantity(product.id, 1);
+                                            }}
+                                            className="h-9 w-9 rounded-r-2xl text-sm font-semibold transition hover:bg-white/10"
+                                            aria-label={`Augmenter la quantité de ${product.name}`}
+                                          >
+                                            +
+                                          </button>
+                                        </div>
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          window.open(product.product_url, '_blank', 'noopener,noreferrer');
+                                        }}
                                         className={[
-                                          'w-20 rounded-xl border px-3 py-2 text-sm outline-none transition',
+                                          'rounded-full border px-3 py-2 text-xs font-medium transition',
                                           checked
-                                            ? 'border-white/20 bg-white/10 text-white'
-                                            : 'border-slate-200 bg-slate-50 text-slate-900'
+                                            ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
+                                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
                                         ].join(' ')}
-                                      />
-                                    </label>
+                                      >
+                                        Voir produit
+                                      </button>
+                                    </div>
                                   </div>
                                 ) : null}
                               </div>
