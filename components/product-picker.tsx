@@ -255,15 +255,15 @@ export function ProductPicker({
                                 </div>
 
                                 {checked ? (
-                                  <div className="pt-3">
+                                  <div className="pt-3 space-y-3">
                                     <input
                                       type="hidden"
                                       name="productQuantities"
                                       value={quantity}
                                     />
 
-                                    <div className="flex items-center justify-between gap-3">
-                                      <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                      <div className="flex flex-wrap items-center gap-2">
                                         <span
                                           className={[
                                             'text-xs font-medium uppercase tracking-[0.2em]',
@@ -305,24 +305,24 @@ export function ProductPicker({
                                           </button>
                                         </div>
                                       </div>
-
-                                      <button
-                                        type="button"
-                                        onClick={(event) => {
-                                          event.preventDefault();
-                                          event.stopPropagation();
-                                          window.open(product.product_url, '_blank', 'noopener,noreferrer');
-                                        }}
-                                        className={[
-                                          'rounded-full border px-3 py-2 text-xs font-medium transition',
-                                          checked
-                                            ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
-                                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
-                                        ].join(' ')}
-                                      >
-                                        Voir produit
-                                      </button>
                                     </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        window.open(product.product_url, '_blank', 'noopener,noreferrer');
+                                      }}
+                                      className={[
+                                        'rounded-full border px-3 py-2 text-xs font-medium transition',
+                                        checked
+                                          ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
+                                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
+                                      ].join(' ')}
+                                    >
+                                      Voir produit
+                                    </button>
                                   </div>
                                 ) : null}
                               </div>
