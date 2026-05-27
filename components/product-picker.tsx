@@ -190,23 +190,30 @@ export function ProductPicker({
                         const quantity = quantityById[product.id] ?? 1;
 
                         return (
-                          <label
+                          <div
                             key={product.id}
                             className={[
-                              'group cursor-pointer rounded-[28px] border p-4 transition',
+                              'group cursor-pointer rounded-[28px] border p-4 transition focus-within:ring-2 focus-within:ring-slate-400',
                               checked
                                 ? 'border-slate-950 bg-slate-950 text-white shadow-soft'
                                 : 'border-slate-200/80 bg-white/85 text-slate-950 hover:border-slate-300'
                             ].join(' ')}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => toggleProduct(product.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                toggleProduct(product.id);
+                              }
+                            }}
                           >
-                            <input
-                              type="checkbox"
-                              name="productIds"
-                              value={product.id}
-                              checked={checked}
-                              onChange={() => toggleProduct(product.id)}
-                              className="sr-only"
-                            />
+                            {checked ? (
+                              <>
+                                <input type="hidden" name="productIds" value={product.id} />
+                                <input type="hidden" name="productQuantities" value={quantity} />
+                              </>
+                            ) : null}
 
                             <div className="flex items-start gap-4">
                               <div
@@ -256,12 +263,6 @@ export function ProductPicker({
 
                                 {checked ? (
                                   <div className="pt-3 space-y-3">
-                                    <input
-                                      type="hidden"
-                                      name="productQuantities"
-                                      value={quantity}
-                                    />
-
                                     <div className="flex flex-wrap items-center gap-3">
                                       <div className="flex flex-wrap items-center gap-2">
                                         <span
@@ -327,7 +328,7 @@ export function ProductPicker({
                                 ) : null}
                               </div>
                             </div>
-                          </label>
+                          </div>
                         );
                       })}
                     </div>
